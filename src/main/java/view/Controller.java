@@ -1,93 +1,118 @@
 package main.java.view;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.ResourceBundle;
-
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import main.java.MainApp;
-import main.java.model.Category;
-import main.java.model.Row;
+import model.Category;
+import model.Model;
 import javafx.fxml.Initializable;
 
 public class Controller implements Initializable {
-	
-	   @FXML
-	    public TitledPane tpLine;
 
-	    @FXML
-	    public ComboBox<Row> cbbline;	
-	    
-	    public  List<Row> rows = new ArrayList<>();  //Criando uma lista de itens do combobox
-	   
-	    public ObservableList<Row> obsCategorias; //Uma lista observavel de itens 
-	 
-	    @FXML
-	    public TitledPane tpModel;
-	    
-	    @FXML
-	    public TreeView<Object> listaDeModelos;  //objetos de vários tipos
-	    
-	    public MainApp mainApp;
-	    
-	    public void setMainApp(MainApp mainApp) {
-	        this.mainApp = mainApp;
-	    	}	   
+	@FXML
+	public TitledPane tpLine;
 
-		@Override
-		public void initialize(URL url, ResourceBundle rb) {
-			tpModel.setDisable(true);	 //Inicia com o painel de baixo desabilitado
-			
-			//Evento que muda a seleção da lista de itens combobox
-			cbbline.getSelectionModel().selectedItemProperty().addListener((sender, oldValue, newValue) ->{
-				
-				//Atualiza a treeView com base a seleção do combobox
-				if(newValue == null)
-					tpModel.setDisable(true);
-				else
-				{						
-					TreeItem<Object> root = new TreeItem<>(); //root Raiz
-					root.setExpanded(true); //expande a raiz
-					
-					for(Category category : newValue.getCategories()) 
-					{
-						TreeItem<Object> categoryItem = new TreeItem<>(category); //pega cada item da categoria e adiciona os modelos na treeView
-						categoryItem.setExpanded(true);
-						for(String model : category.getModels())  
-						{
-							TreeItem<Object> modelItem = new TreeItem<>(model);
-							modelItem.setExpanded(true);
-							categoryItem.getChildren().add(modelItem);							
-						}
-						root.getChildren().add(categoryItem);  //adiciona em cada categoria os filhos do root
-					}						
-					
-					listaDeModelos.setShowRoot(false);  //oculta o root
-					listaDeModelos.setRoot(root);
-					tpModel.setDisable(false);
-					
+	@FXML
+	public ComboBox<String> cbbline;
+
+	public ObservableList<String> obsCategorias; // Uma lista observavel de itens
+
+	@FXML
+	public TitledPane tpModel;
+
+	@FXML
+	public TreeView<String> listaDeModelos; // objetos de vários tipos
+
+	public MainApp mainApp;
+
+	public void setMainApp(MainApp mainApp) {
+		this.mainApp = mainApp;
+	}
+
+	@Override
+	public void initialize(URL url, ResourceBundle rb) {
+		tpModel.setDisable(true); // Inicia com o painel de baixo desabilitado
+		loadItems();
+	}
+
+	private void loadItems() {
+		//setando itens do combobox
+		obsCategorias = FXCollections.observableArrayList();
+		obsCategorias.add("Ares");
+		obsCategorias.add("Cronos");
+		cbbline.setItems(obsCategorias);
+
+		//Manipule a mudança do item selecionado da combobox
+		cbbline.getSelectionModel().selectedItemProperty().addListener((sender, oldValue, newValue) -> {
+			if (newValue != null) {
+				tpModel.setDisable(false);
+
+				TreeItem<String> root = new TreeItem<>("root");
+				listaDeModelos.setRoot(root);
+				listaDeModelos.setShowRoot(false);
+				switch (newValue) {
+				case "Ares": {
+					TreeItem<String> aresTB = new TreeItem<>(Category.AresTb.getName());
+					aresTB.setExpanded(true);
+
+					aresTB.getChildren().add(new TreeItem<>(Model.ARES7021.getName()));
+					aresTB.getChildren().add(new TreeItem<>(Model.ARES7031.getName()));
+					aresTB.getChildren().add(new TreeItem<>(Model.ARES7023.getName()));
+					root.getChildren().add(aresTB);
+
+					TreeItem<String> aresThs = new TreeItem<>(Category.AresThs.getName());
+					aresThs.setExpanded(true);
+
+					aresThs.getChildren().add(new TreeItem<>(Model.ARES802315.getName()));
+					aresThs.getChildren().add(new TreeItem<>(Model.ARES8023200.getName()));
+					aresThs.getChildren().add(new TreeItem<>(Model.ARES802325.getName()));
+					root.getChildren().add(aresThs);
+
 				}
-			});
-		}    	
-		
-		public void setComboboxItems(List<Row> comboBoxItems) {						
-			rows = comboBoxItems;				
-			obsCategorias = FXCollections.observableArrayList(rows);			
-			cbbline.setItems(obsCategorias);				
-		}
+					break;
+
+				case "Cronos":
+
+					TreeItem<String> CronosL = new TreeItem<>(Category.CronosL.getName());
+					CronosL.setExpanded(true);
+
+					CronosL.getChildren().add(new TreeItem<>(Model.Cronos6021L.getName()));
+					CronosL.getChildren().add(new TreeItem<>(Model.Cronos6021L.getName()));
+					CronosL.getChildren().add(new TreeItem<>(Model.Cronos7023L.getName()));
+					root.getChildren().add(CronosL);
+
+					TreeItem<String> CronosNg = new TreeItem<>(Category.CronosNg.getName());
+					CronosNg.setExpanded(true);
+
+					CronosNg.getChildren().add(new TreeItem<>(Model.Cronos6001NG.getName()));
+					CronosNg.getChildren().add(new TreeItem<>(Model.Cronos6003NG.getName()));
+					CronosNg.getChildren().add(new TreeItem<>(Model.Cronos6021NG.getName()));
+					CronosNg.getChildren().add(new TreeItem<>(Model.Cronos6031NG.getName()));
+					CronosNg.getChildren().add(new TreeItem<>(Model.Cronos7021NG.getName()));
+					CronosNg.getChildren().add(new TreeItem<>(Model.Cronos7023NG.getName()));
+					root.getChildren().add(CronosNg);
+
+					TreeItem<String> CronosOld = new TreeItem<>(Category.CronosOld.getName());
+					CronosOld.setExpanded(true);
+
+					CronosOld.getChildren().add(new TreeItem<>(Model.Cronos6001A.getName()));
+					CronosOld.getChildren().add(new TreeItem<>(Model.Cronos6003.getName()));
+					CronosOld.getChildren().add(new TreeItem<>(Model.Cronos7023.getName()));
+
+					root.getChildren().add(CronosOld);
+
+					break;
+				}
+
+			}
+		});
+	}
 }
-
-	
-	
-
 
