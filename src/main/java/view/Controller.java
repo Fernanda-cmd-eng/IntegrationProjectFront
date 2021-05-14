@@ -1,7 +1,11 @@
 package main.java.view;
 
 import java.net.URL;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
+import org.hibernate.HibernateException;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -10,8 +14,9 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import main.java.MainApp;
-import model.Category;
-import model.Model;
+import model.Meters;
+import model.MetersService;
+
 import javafx.fxml.Initializable;
 
 public class Controller implements Initializable {
@@ -39,80 +44,55 @@ public class Controller implements Initializable {
 	@Override
 	public void initialize(URL url, ResourceBundle rb) {
 		tpModel.setDisable(true); // Inicia com o painel de baixo desabilitado
+
 		loadItems();
 	}
 
 	private void loadItems() {
-		//setando itens do combobox
 		obsCategorias = FXCollections.observableArrayList();
-		obsCategorias.add("Ares");
-		obsCategorias.add("Cronos");
+		try {
+			MetersService service = new MetersService();
+			for (String line : service.getLines())
+				obsCategorias.add(line);
+		} catch (HibernateException exception) {
+			System.out.println("Problem creating session factory");
+			exception.printStackTrace();
+			throw exception;
+		}
+
 		cbbline.setItems(obsCategorias);
 
-		//Manipule a mudança do item selecionado da combobox
 		cbbline.getSelectionModel().selectedItemProperty().addListener((sender, oldValue, newValue) -> {
 			if (newValue != null) {
 				tpModel.setDisable(false);
+				try {
+					MetersService service = new MetersService();
+					List<Meters> meters = service.getByLine(newValue);
+					TreeItem<String> root = new TreeItem<String>();
+					listaDeModelos.setShowRoot(false);
+					listaDeModelos.setRoot(root);
 
-				TreeItem<String> root = new TreeItem<>("root");
-				listaDeModelos.setRoot(root);
-				listaDeModelos.setShowRoot(false);
-				switch (newValue) {
-				case "Ares": {
-					TreeItem<String> aresTB = new TreeItem<>(Category.AresTb.getName());
-					aresTB.setExpanded(true);
+					// Pega todos os Meters de uma linha e agrupa pela categoria
+					Map<String, List<Meters>> categories = meters.stream()
+							.collect(Collectors.groupingBy(item -> item.getCategory()));
+					categories.forEach((key, value) -> {
+						TreeItem<String> category = new TreeItem<>(key);
+						category.setExpanded(true);
+						for (Meters meter : value) {
+							TreeItem<String> item = new TreeItem<>(meter.getModel());
+							category.getChildren().add(item);
+						}
+						root.getChildren().add(category);
+					});
 
-					aresTB.getChildren().add(new TreeItem<>(Model.ARES7021.getName()));
-					aresTB.getChildren().add(new TreeItem<>(Model.ARES7031.getName()));
-					aresTB.getChildren().add(new TreeItem<>(Model.ARES7023.getName()));
-					root.getChildren().add(aresTB);
-
-					TreeItem<String> aresThs = new TreeItem<>(Category.AresThs.getName());
-					aresThs.setExpanded(true);
-
-					aresThs.getChildren().add(new TreeItem<>(Model.ARES802315.getName()));
-					aresThs.getChildren().add(new TreeItem<>(Model.ARES8023200.getName()));
-					aresThs.getChildren().add(new TreeItem<>(Model.ARES802325.getName()));
-					root.getChildren().add(aresThs);
-
-				}
-					break;
-
-				case "Cronos":
-
-					TreeItem<String> CronosL = new TreeItem<>(Category.CronosL.getName());
-					CronosL.setExpanded(true);
-
-					CronosL.getChildren().add(new TreeItem<>(Model.Cronos6021L.getName()));
-					CronosL.getChildren().add(new TreeItem<>(Model.Cronos6021L.getName()));
-					CronosL.getChildren().add(new TreeItem<>(Model.Cronos7023L.getName()));
-					root.getChildren().add(CronosL);
-
-					TreeItem<String> CronosNg = new TreeItem<>(Category.CronosNg.getName());
-					CronosNg.setExpanded(true);
-
-					CronosNg.getChildren().add(new TreeItem<>(Model.Cronos6001NG.getName()));
-					CronosNg.getChildren().add(new TreeItem<>(Model.Cronos6003NG.getName()));
-					CronosNg.getChildren().add(new TreeItem<>(Model.Cronos6021NG.getName()));
-					CronosNg.getChildren().add(new TreeItem<>(Model.Cronos6031NG.getName()));
-					CronosNg.getChildren().add(new TreeItem<>(Model.Cronos7021NG.getName()));
-					CronosNg.getChildren().add(new TreeItem<>(Model.Cronos7023NG.getName()));
-					root.getChildren().add(CronosNg);
-
-					TreeItem<String> CronosOld = new TreeItem<>(Category.CronosOld.getName());
-					CronosOld.setExpanded(true);
-
-					CronosOld.getChildren().add(new TreeItem<>(Model.Cronos6001A.getName()));
-					CronosOld.getChildren().add(new TreeItem<>(Model.Cronos6003.getName()));
-					CronosOld.getChildren().add(new TreeItem<>(Model.Cronos7023.getName()));
-
-					root.getChildren().add(CronosOld);
-
-					break;
+				} catch (HibernateException exception) {
+					exception.printStackTrace();
+					throw exception;
 				}
 
-			}
+			} else
+				tpModel.setDisable(true);
+
 		});
 	}
 }
-
