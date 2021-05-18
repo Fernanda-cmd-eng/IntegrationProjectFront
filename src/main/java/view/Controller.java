@@ -14,8 +14,8 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import main.java.MainApp;
-import model.Meters;
-import model.MetersService;
+import main.model.Meters;
+import main.model.MetersService;
 
 import javafx.fxml.Initializable;
 
