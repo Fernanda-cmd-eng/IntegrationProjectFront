@@ -14,9 +14,6 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import main.java.MainApp;
-import main.model.Meters;
-import main.model.MetersService;
-
 import javafx.fxml.Initializable;
 
 public class Controller implements Initializable {
@@ -37,6 +34,8 @@ public class Controller implements Initializable {
 
 	public MainApp mainApp;
 
+	private List<MetersView> meters;
+
 	public void setMainApp(MainApp mainApp) {
 		this.mainApp = mainApp;
 	}
@@ -51,9 +50,12 @@ public class Controller implements Initializable {
 	private void loadItems() {
 		obsCategorias = FXCollections.observableArrayList();
 		try {
-			MetersService service = new MetersService();
-			for (String line : service.getLines())
-				obsCategorias.add(line);
+			meters = MeterRequester.getMeters("http://localhost:8080/api/meters");
+			for (MetersView m : meters) {
+				if (!obsCategorias.contains(m.getLine()))
+					obsCategorias.add(m.getLine());
+			}
+
 		} catch (HibernateException exception) {
 			System.out.println("Problem creating session factory");
 			exception.printStackTrace();
@@ -65,30 +67,24 @@ public class Controller implements Initializable {
 		cbbline.getSelectionModel().selectedItemProperty().addListener((sender, oldValue, newValue) -> {
 			if (newValue != null) {
 				tpModel.setDisable(false);
-				try {
-					MetersService service = new MetersService();
-					List<Meters> meters = service.getByLine(newValue);
-					TreeItem<String> root = new TreeItem<String>();
-					listaDeModelos.setShowRoot(false);
-					listaDeModelos.setRoot(root);
 
-					// Pega todos os Meters de uma linha e agrupa pela categoria
-					Map<String, List<Meters>> categories = meters.stream()
-							.collect(Collectors.groupingBy(item -> item.getCategory()));
-					categories.forEach((key, value) -> {
-						TreeItem<String> category = new TreeItem<>(key);
-						category.setExpanded(true);
-						for (Meters meter : value) {
-							TreeItem<String> item = new TreeItem<>(meter.getModel());
-							category.getChildren().add(item);
-						}
-						root.getChildren().add(category);
-					});
+				TreeItem<String> root = new TreeItem<String>();
+				listaDeModelos.setShowRoot(false);
+				listaDeModelos.setRoot(root);
 
-				} catch (HibernateException exception) {
-					exception.printStackTrace();
-					throw exception;
-				}
+				// Pega todos os Meters de uma linha e agrupa pela categoria
+				Map<String, List<MetersView>> categories = meters.stream()
+						.filter(item -> item.getLine().equals(newValue))
+						.collect(Collectors.groupingBy(item -> item.getCategory()));
+				categories.forEach((key, value) -> {
+					TreeItem<String> category = new TreeItem<>(key);
+					category.setExpanded(true);
+					for (MetersView meter : value) {
+						TreeItem<String> item = new TreeItem<>(meter.getModel());
+						category.getChildren().add(item);
+					}
+					root.getChildren().add(category);
+				});
 
 			} else
 				tpModel.setDisable(true);
