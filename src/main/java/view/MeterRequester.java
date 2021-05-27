@@ -19,7 +19,6 @@ public class MeterRequester {
 			connection = (HttpURLConnection) url.openConnection();
 			connection.setRequestMethod("GET");
 			connection.setRequestProperty("Accept", "application/json");
-			System.out.println(targetURL);
 
 			// This line makes the request
 			InputStream is = connection.getInputStream();
