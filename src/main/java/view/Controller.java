@@ -72,7 +72,6 @@ public class Controller implements Initializable {
 				listaDeModelos.setShowRoot(false);
 				listaDeModelos.setRoot(root);
 
-				// Pega todos os Meters de uma linha e agrupa pela categoria
 				Map<String, List<MetersView>> categories = meters.stream()
 						.filter(item -> item.getLine().equals(newValue))
 						.collect(Collectors.groupingBy(item -> item.getCategory()));
