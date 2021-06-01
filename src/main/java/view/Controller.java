@@ -1,6 +1,7 @@
 package main.java.view;
 
 import java.net.URL;
+import java.nio.channels.AlreadyBoundException;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -32,9 +33,13 @@ public class Controller implements Initializable {
 	@FXML
 	public TreeView<String> listaDeModelos; // objetos de vários tipos
 
-	public MainApp mainApp;
+	private MainApp mainApp;
 
 	private List<MetersView> meters;
+
+	public List<MetersView> getMeters() {
+		return meters;
+	}
 
 	public void setMainApp(MainApp mainApp) {
 		this.mainApp = mainApp;
@@ -47,7 +52,7 @@ public class Controller implements Initializable {
 		loadItems();
 	}
 
-	private void loadItems() {
+	public void loadItems() {		
 		obsCategorias = FXCollections.observableArrayList();
 		try {
 			meters = MeterRequester.getMeters("http://localhost:8080/api/meters");
@@ -68,7 +73,7 @@ public class Controller implements Initializable {
 			if (newValue != null) {
 				tpModel.setDisable(false);
 
-				TreeItem<String> root = new TreeItem<String>();
+				TreeItem<String> root = new TreeItem<String>(cbbline.getSelectionModel().getSelectedItem());
 				listaDeModelos.setShowRoot(false);
 				listaDeModelos.setRoot(root);
 

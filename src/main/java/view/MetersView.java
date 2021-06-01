@@ -38,5 +38,9 @@ public class MetersView {
 	public void setModel(String model) {
 		this.model = model;
 	}
+	
+	public String toString() {
+		return line + " " + category + " " + model;
+	}
 
 }
